@@ -47,3 +47,59 @@ def get_tasks():
 
         print("Error Happened: ", Ex)
         return jsonify({ "message": f"Error happened while fetching, {Ex}" }), 500
+
+@task_bp.route('/remove-task/<task_id>', methods=['DELETE'])
+def remove_task(task_id):
+
+    try:
+
+        task = db.session.get(Task, task_id)
+
+        if not task:
+
+            return jsonify({ "message": "Task not found" }), 404
+
+        db.session.delete(task)
+        db.session.commit()
+
+        return jsonify({ "message": "Task deleted successfully" }), 200
+
+    except Exception as Ex:
+
+        print("Error Happened: ", Ex)
+        return jsonify({ "message": f"Error happened while removing, {Ex}" }), 500
+
+@task_bp.route("/update-task/<task_id>", methods=['PUT'])
+def update_task(task_id):
+
+    try:
+
+        task = db.session.get(Task, task_id)
+
+        if not task:
+
+            return jsonify({ "message": "Task not found" }), 404
+
+        data = request.json
+
+        task.status = data.get("status", task.status)
+        task.taskEndDate = data.get("taskEndDate", task.endDate)
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Task updated successfully!",
+            "task": {
+                "id": task.id,
+                "title": task.title,
+                "description": task.description,
+                "status": task.status.value,
+                "taskStartDate": task.startDate,
+                "taskEndDate": task.endDate
+            }
+        })
+
+    except Exception as Ex:
+
+        print("Error Happened: ", Ex)
+        return jsonify({ "message": f"Error happened while removing, {Ex}" }), 500

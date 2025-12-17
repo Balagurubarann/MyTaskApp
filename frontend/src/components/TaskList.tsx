@@ -3,6 +3,7 @@ import TaskPopupModel from "./TaskPopupModel";
 import type { Status, Task } from "@/types/task.type";
 import StatusIndicator from "./StatusIndicator";
 import useTask from "../hooks/useTask.tsx";
+import { useTaskStore } from "@/store/useTaskStore.ts";
 
 type Tab = "all" | "pending" | "completed" | "failed";
 
@@ -19,6 +20,14 @@ function TaskList(props: { activeTab: Tab }): React.ReactNode {
   });
 
   const [isRendered, setIsRendered] = useState<boolean>(false);
+
+  const tasks = useTaskStore(state => state.tasks);
+
+  const { fetchTask } = useTaskStore();
+
+  useEffect(() => {
+    fetchTask();
+  }, [])
 
   function renderTaskModel() {
     setIsRendered(true);
@@ -40,7 +49,7 @@ function TaskList(props: { activeTab: Tab }): React.ReactNode {
         />
       )}
 
-      {[].map((task, index) => {
+      {tasks.map((task, index) => {
         return (
           (activeTab === task.status || activeTab === "all") && (
             <div
@@ -55,11 +64,11 @@ function TaskList(props: { activeTab: Tab }): React.ReactNode {
                 </div>
 
                 <p className="text-right font-semibold text-xs text-gray-500">
-                  {task.taskEndDate}
+                  {new Date(task.taskEndDate).toISOString().split("T")[0]}
                 </p>
               </div>
               <p className="text-neutral-600 text-sm">
-                {task.description}
+                {task.description.slice(0, 30) + "..."}
               </p>
             </div>
           )

@@ -28,25 +28,19 @@ function TaskInfo(): React.ReactNode {
             </TabsTrigger>
             <TabsTrigger
               value="pending"
-              className={`cursor-pointer ${
-                activeTab === "pending" && "bg-orange-500/80 text-black"
-              }`}
+              className={`cursor-pointer`}
             >
               Pending
             </TabsTrigger>
             <TabsTrigger
               value="completed"
-              className={`cursor-pointer ${
-                activeTab === "completed" && "bg-green-500/85 text-black"
-              }`}
+              className={`cursor-pointer`}
             >
               Completed
             </TabsTrigger>
             <TabsTrigger
               value="failed"
-              className={`cursor-pointer ${
-                activeTab === "failed" && "bg-red-500/80 text-black"
-              }`}
+              className={`cursor-pointer`}
             >
               Failed
             </TabsTrigger>

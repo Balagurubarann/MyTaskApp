@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NotebookPen, PenTool, RotateCcw } from "lucide-react";
 import type { Task } from "@/types/task.type";
+import { useTaskStore } from "@/store/useTaskStore.ts";
 
 function AddTaskForm(): React.ReactNode {
   const [task, setTask] = useState<Task>({
@@ -10,6 +11,8 @@ function AddTaskForm(): React.ReactNode {
     taskStartDate: new Date().toISOString().split("T")[0] || "",
     taskEndDate: "",
   });
+
+  const addTask = useTaskStore(state => state.addTask);
 
   function handleTaskInputChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -37,6 +40,8 @@ function AddTaskForm(): React.ReactNode {
 
       if (response.ok) {
         const data = await response.json();
+
+        addTask(data.task);
 
         setTask({
           title: "",

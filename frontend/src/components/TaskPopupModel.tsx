@@ -1,5 +1,5 @@
 import { CircleX, Save, Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Status, Task } from "@/types/task.type.ts";
 import {
   Select,
@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import StatusIndicator from "./StatusIndicator";
+import { useTaskStore } from "@/store/useTaskStore.ts";
 
 function TaskPopupModel(props: {
   setIsRendered: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,6 +19,8 @@ function TaskPopupModel(props: {
   const { selectedTask, setIsRendered, setSelectedTask } = props;
 
   const [readyToRemove, setReadyToRemove] = useState<boolean>(false);
+
+  const { removeTask, updateTask } = useTaskStore();
 
   function closeTaskModel() {
     setIsRendered(false);
@@ -35,6 +38,56 @@ function TaskPopupModel(props: {
       ...selectedTask,
       status,
     });
+  }
+
+  function handleEndDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type } = e.target;
+
+    setSelectedTask({
+      ...selectedTask,
+      [name]: type === "date" ? new Date(value).toISOString().split("T")[0] : value
+    })
+
+  }
+
+  async function handleUserAction() {
+    try {
+
+      if (readyToRemove) {
+
+        const response = await fetch(`http://localhost:5000/api/remove-task/${selectedTask.id}`, {
+          method: "DELETE"
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          removeTask(selectedTask.id);
+          setIsRendered(false);
+          setReadyToRemove(false);
+        }
+
+      } else {
+
+        const response = await fetch(`http://localhost:5000/api/update-task/${selectedTask.id}`, {
+          method: "PUT",
+          body: JSON.stringify(selectedTask),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          updateTask(data.task);
+          setIsRendered(false);
+          setReadyToRemove(false);
+        }
+
+      }
+
+    } catch (error) {
+      throw error;
+    }
   }
 
   return (
@@ -59,7 +112,7 @@ function TaskPopupModel(props: {
               </SelectContent>
             </Select>
             <p className="text-xs text-zinc-500">
-              {selectedTask.taskStartDate}
+              {new Date(selectedTask.taskStartDate).toISOString().split("T")[0]}
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -81,11 +134,13 @@ function TaskPopupModel(props: {
           </p>
           <div className="p-2 flex justify-between rounded bg-zinc-300/30 mt-4">
             <p>Task ends on:</p>
-            <input type="date" defaultValue={selectedTask.taskEndDate} />
+            <input type="date" name="taskEndDate" id="taskEndDate" onChange={handleEndDateChange} value={new Date(selectedTask.taskEndDate).toISOString().split("T")[0]} />
           </div>
           <button className={`${
             readyToRemove ? "bg-red-500": "bg-indigo-500"
-          } p-2 mt-3 rounded flex gap-4 justify-center items-center cursor-pointer`}>
+          } p-2 mt-3 rounded flex gap-4 justify-center items-center cursor-pointer`}
+          onClick={handleUserAction}
+          >
             {
               readyToRemove ? (
                 <Trash2 className="text-white" size={20} />
